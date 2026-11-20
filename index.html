@@ -29,7 +29,12 @@
       </button>
     </header>
 
- 
+  <!-- Toast popup: shows briefly when a lesson is added to the cart -->
+    <transition name="toast">
+      <div class="toast" v-if="toastMessage" role="status">
+        <i class="fa-solid fa-circle-check"></i> {{ toastMessage }}
+      </div>
+    </transition>
 
     <!-- LESSONS PAGE -->
     <main v-if="currentPage === 'lessons'">

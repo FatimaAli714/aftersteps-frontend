@@ -155,3 +155,15 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .add-btn:hover:not(:disabled) { background: var(--primary-dark); }
 .add-btn:disabled { background: #e6dfee; color: #7d7490; cursor: not-allowed; }
 .back-btn { margin-top: 1rem; }
+
+/* ---------- Toast popup ---------- */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: #fff;
+  padding: 0.8rem 1.4rem; border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(45, 34, 64, 0.25);
+  z-index: 20; font-weight: 500;
+}
+.toast i { color: #7be0a4; margin-right: 0.4rem; }
+.toast-enter-active, .toast-leave-active { transition: opacity 0.25s, transform 0.25s; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 12px); }
