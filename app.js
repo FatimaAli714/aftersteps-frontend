@@ -7,6 +7,7 @@ createApp({
       searchText: '',           // what the user types in the search box
       sortBy: 'subject',        // attribute to sort by
       sortOrder: 'asc',         // asc or desc
+      selectedTeacher: 'all',   // teacher filter: 'all' or a teacher's name
       cart: [],                 // items added: { id, subject, location, price, icon, quantity }
       customerName: '',         // checkout form
       customerPhone: '',
@@ -15,16 +16,16 @@ createApp({
       toastMessage: '',         // text shown in the popup ('' means hidden)
       toastTimer: null,         // remembers the timer so we can reset it
       lessons: [
-        { id: 1, subject: 'Maths Tuition', location: 'Rose Hill', price: 800, spaces: 5, icon: 'fa-solid fa-calculator' },
-        { id: 2, subject: 'Sega Dance', location: 'Curepipe', price: 600, spaces: 5, icon: 'fa-solid fa-music' },
-        { id: 3, subject: 'Swimming', location: 'Quatre Bornes', price: 900, spaces: 5, icon: 'fa-solid fa-person-swimming' },
-        { id: 4, subject: 'French Classes', location: 'Port Louis', price: 700, spaces: 5, icon: 'fa-solid fa-language' },
-        { id: 5, subject: 'Football', location: 'Vacoas', price: 500, spaces: 5, icon: 'fa-solid fa-futbol' },
-        { id: 6, subject: 'Art Club', location: 'Moka', price: 650, spaces: 5, icon: 'fa-solid fa-palette' },
-        { id: 7, subject: 'Chess', location: 'Rose Hill', price: 450, spaces: 5, icon: 'fa-solid fa-chess' },
-        { id: 8, subject: 'Robotics', location: 'Ebene', price: 1200, spaces: 5, icon: 'fa-solid fa-robot' },
-        { id: 9, subject: 'Creole Heritage', location: 'Grand Baie', price: 550, spaces: 5, icon: 'fa-solid fa-book-open' },
-        { id: 10, subject: 'Piano', location: 'Flic en Flac', price: 1000, spaces: 5, icon: 'fa-solid fa-music' }
+        { id: 1, subject: 'Maths Tuition', location: 'Rose Hill', teacher: 'Priya Ramgoolam', price: 800, spaces: 5, icon: 'fa-solid fa-calculator' },
+        { id: 2, subject: 'Sega Dance', location: 'Curepipe', teacher: 'Kevin Baptiste', price: 600, spaces: 5, icon: 'fa-solid fa-music' },
+        { id: 3, subject: 'Swimming', location: 'Quatre Bornes', teacher: 'Rajesh Beeharry', price: 900, spaces: 5, icon: 'fa-solid fa-person-swimming' },
+        { id: 4, subject: 'French Classes', location: 'Port Louis', teacher: 'Marie-Claire Lagesse', price: 700, spaces: 5, icon: 'fa-solid fa-language' },
+        { id: 5, subject: 'Football', location: 'Vacoas', teacher: 'Rajesh Beeharry', price: 500, spaces: 5, icon: 'fa-solid fa-futbol' },
+        { id: 6, subject: 'Art Club', location: 'Moka', teacher: 'Marie-Claire Lagesse', price: 650, spaces: 5, icon: 'fa-solid fa-palette' },
+        { id: 7, subject: 'Chess', location: 'Rose Hill', teacher: 'Priya Ramgoolam', price: 450, spaces: 5, icon: 'fa-solid fa-chess' },
+        { id: 8, subject: 'Robotics', location: 'Ebene', teacher: 'Anushka Doorgakant', price: 1200, spaces: 5, icon: 'fa-solid fa-robot' },
+        { id: 9, subject: 'Creole Heritage', location: 'Grand Baie', teacher: 'Kevin Baptiste', price: 550, spaces: 5, icon: 'fa-solid fa-book-open' },
+        { id: 10, subject: 'Piano', location: 'Flic en Flac', teacher: 'Anushka Doorgakant', price: 1000, spaces: 5, icon: 'fa-solid fa-music' }
       ]
     };
   },
@@ -53,21 +54,35 @@ createApp({
       return this.nameValid && this.phoneValid && this.cart.length > 0;
     },
 
-    // The lessons actually shown: first filtered by search, then sorted.
+    // List of teacher names for the dropdown, built from the lessons.
+    // Set removes duplicates (each teacher has 2 lessons), sort puts them A to Z.
+    teacherNames() {
+      return [...new Set(this.lessons.map(lesson => lesson.teacher))].sort();
+    },
+
+    // The lessons actually shown: filtered by teacher, then by search, then sorted.
     // Vue re-runs this automatically whenever searchText, sortBy, sortOrder or lessons change.
     visibleLessons() {
       const text = this.searchText.trim().toLowerCase();
 
-      const filtered = this.lessons.filter(lesson => {
+      // Step 1: teacher filter. 'all' keeps every lesson.
+      const byTeacher = this.lessons.filter(lesson => {
+        return this.selectedTeacher === 'all' || lesson.teacher === this.selectedTeacher;
+      });
+
+      // Step 2: search filter, applied to what is left after step 1
+      const filtered = byTeacher.filter(lesson => {
         if (text === '') return true;
         return (
           lesson.subject.toLowerCase().includes(text) ||
           lesson.location.toLowerCase().includes(text) ||
+          lesson.teacher.toLowerCase().includes(text) ||
           String(lesson.price).includes(text) ||
           String(lesson.spaces).includes(text)
         );
       });
 
+      // Step 3: sort
       const key = this.sortBy;
       const direction = this.sortOrder === 'asc' ? 1 : -1;
 
