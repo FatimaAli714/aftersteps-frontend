@@ -1,0 +1,1 @@
+mongodb+srv://jacintaali35_db_user:<db_password>@cluster0.jtub7ow.mongodb.net/

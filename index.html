@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="app">
@@ -29,7 +29,7 @@
       </button>
     </header>
 
-  <!-- Toast popup: shows briefly when a lesson is added to the cart -->
+    <!-- Toast popup: shows briefly when a lesson is added to the cart -->
     <transition name="toast">
       <div class="toast" v-if="toastMessage" role="status">
         <i class="fa-solid fa-circle-check"></i> {{ toastMessage }}
@@ -47,12 +47,19 @@
       <section class="controls">
         <label class="search">
           <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="search" v-model="searchText" placeholder="Search by subject, location, price or spaces">
+          <input type="search" v-model="searchText" placeholder="Search by subject, location, teacher, price or spaces">
+        </label>
+        <label>Teacher
+          <select v-model="selectedTeacher">
+            <option value="all">All teachers</option>
+            <option v-for="name in teacherNames" :key="name" :value="name">{{ name }}</option>
+          </select>
         </label>
         <label>Sort by
           <select v-model="sortBy">
             <option value="subject">Subject</option>
             <option value="location">Location</option>
+            <option value="teacher">Teacher</option>
             <option value="price">Price</option>
             <option value="spaces">Spaces</option>
           </select>
@@ -67,7 +74,7 @@
 
       <p class="empty" v-if="visibleLessons.length === 0">
         <i class="fa-regular fa-face-frown"></i>
-        No lessons match "{{ searchText }}". Try a different word.
+        No lessons match your search or teacher filter. Try a different word.
       </p>
 
       <!-- The lesson list: v-for makes one card per lesson -->
@@ -79,6 +86,7 @@
             <span class="badge" :class="spacesClass(lesson.spaces)">{{ spacesLabel(lesson.spaces) }}</span>
           </div>
           <p class="lesson-location"><i class="fa-solid fa-location-dot"></i> {{ lesson.location }}</p>
+          <p class="lesson-teacher"><i class="fa-solid fa-user"></i> with {{ lesson.teacher }}</p>
           <p class="lesson-price"><strong>Rs {{ lesson.price }}</strong> <span>per space</span></p>
           <button class="add-btn" :disabled="lesson.spaces === 0" @click="addToCart(lesson)">
             {{ lesson.spaces === 0 ? 'Fully booked' : 'Add to cart' }}
@@ -86,7 +94,6 @@
         </article>
       </div>
     </main>
-      
 
     <!-- TEACHERS PAGE (placeholder for later) -->
     <main v-else-if="currentPage === 'teachers'">
