@@ -31,8 +31,8 @@
 
     <!-- Toast popup: shows briefly when a lesson is added to the cart -->
     <transition name="toast">
-      <div class="toast" v-if="toastMessage" role="status">
-        <i class="fa-solid fa-circle-check"></i> {{ toastMessage }}
+      <div class="toast" :class="{ 'toast-error': toastIsError }" v-if="toastMessage" role="status">
+        <i :class="toastIsError ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check'"></i> {{ toastMessage }}
       </div>
     </transition>
 
@@ -57,10 +57,10 @@
         </label>
         <label>Sort by
           <select v-model="sortBy">
-            <option value="subject">Subject</option>
+            <option value="topic">Subject</option>
             <option value="location">Location</option>
             <option value="price">Price</option>
-            <option value="spaces">Spaces</option>
+            <option value="space">Spaces</option>
           </select>
         </label>
         <label>Order
@@ -71,24 +71,33 @@
         </label>
       </section>
 
-      <p class="empty" v-if="visibleLessons.length === 0">
+      <p class="empty" v-if="loading">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading lessons...
+      </p>
+
+      <p class="empty error" v-if="loadError">
+        {{ loadError }}
+        <button class="remove-btn" @click="fetchLessons">Try again</button>
+      </p>
+
+      <p class="empty" v-if="!loading && !loadError && visibleLessons.length === 0">
         <i class="fa-regular fa-face-frown"></i>
         No lessons match your search or teacher filter. Try a different word.
       </p>
 
       <!-- The lesson list: v-for makes one card per lesson -->
       <div class="lesson-grid">
-        <article class="lesson-card" v-for="lesson in visibleLessons" :key="lesson.id">
+        <article class="lesson-card" v-for="lesson in visibleLessons" :key="lesson._id">
           <div class="lesson-icon"><i :class="lesson.icon"></i></div>
           <div class="lesson-top">
-            <h3>{{ lesson.subject }}</h3>
-            <span class="badge" :class="spacesClass(lesson.spaces)">{{ spacesLabel(lesson.spaces) }}</span>
+            <h3>{{ lesson.topic }}</h3>
+            <span class="badge" :class="spacesClass(lesson.space)">{{ spacesLabel(lesson.space) }}</span>
           </div>
           <p class="lesson-location"><i class="fa-solid fa-location-dot"></i> {{ lesson.location }}</p>
           <p class="lesson-teacher"><i class="fa-solid fa-user"></i> with {{ lesson.teacher }}</p>
           <p class="lesson-price"><strong>Rs {{ lesson.price }}</strong> <span>per space</span></p>
-          <button class="add-btn" :disabled="lesson.spaces === 0" @click="addToCart(lesson)">
-            {{ lesson.spaces === 0 ? 'Fully booked' : 'Add to cart' }}
+          <button class="add-btn" :disabled="lesson.space === 0" @click="addToCart(lesson)">
+            {{ lesson.space === 0 ? 'Fully booked' : 'Add to cart' }}
           </button>
         </article>
       </div>
@@ -117,7 +126,7 @@
           <article class="cart-row" v-for="item in cart" :key="item.id">
             <div class="cart-icon"><i :class="item.icon"></i></div>
             <div class="cart-info">
-              <h3>{{ item.subject }}</h3>
+              <h3>{{ item.topic }}</h3>
               <p>{{ item.location }}</p>
               <p>Rs {{ item.price }} x {{ item.quantity }} = <strong>Rs {{ item.price * item.quantity }}</strong></p>
             </div>
@@ -141,7 +150,7 @@
           </label>
           <p class="field-error" v-if="customerPhone !== '' && !phoneValid">Phone must be 7 to 15 digits, numbers only.</p>
 
-          <button class="add-btn" :disabled="!canCheckout" @click="checkout">Checkout</button>
+          <button class="add-btn" :disabled="!canCheckout" @click="checkout">{{ submitting ? 'Placing order...' : 'Checkout' }}</button>
         </aside>
       </div>
     </main>

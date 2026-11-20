@@ -1,33 +1,35 @@
 const { createApp } = Vue;
 
+// Address of the back-end server. Locally it is your own computer.
+// When the server is on Render, change this one line to your Render address.
+const API_URL = 'http://localhost:3000';
+
 createApp({
   data() {
     return {
       currentPage: 'lessons',   // which page is showing: lessons, teachers or cart
       searchText: '',           // what the user types in the search box
-      sortBy: 'subject',        // attribute to sort by
+      sortBy: 'topic',          // attribute to sort by
       sortOrder: 'asc',         // asc or desc
       selectedTeacher: 'all',   // teacher filter: 'all' or a teacher's name
-      cart: [],                 // items added: { id, subject, location, price, icon, quantity }
+      lessons: [],              // filled from the database by fetchLessons()
+      loading: true,            // true while waiting for the server
+      loadError: '',            // message shown if the lessons could not be loaded
+      cart: [],                 // items added: { id, topic, location, price, icon, quantity }
       customerName: '',         // checkout form
       customerPhone: '',
+      submitting: false,        // true while the order is being sent to the server
       orderPlaced: false,       // true after checkout, shows the confirmation message
       lastOrder: null,          // summary of the order just placed
       toastMessage: '',         // text shown in the popup ('' means hidden)
-      toastTimer: null,         // remembers the timer so we can reset it
-      lessons: [
-        { id: 1, subject: 'Maths Tuition', location: 'Rose Hill', teacher: 'Priya Ramgoolam', price: 800, spaces: 5, icon: 'fa-solid fa-calculator' },
-        { id: 2, subject: 'Sega Dance', location: 'Curepipe', teacher: 'Kevin Baptiste', price: 600, spaces: 5, icon: 'fa-solid fa-music' },
-        { id: 3, subject: 'Swimming', location: 'Quatre Bornes', teacher: 'Rajesh Beeharry', price: 900, spaces: 5, icon: 'fa-solid fa-person-swimming' },
-        { id: 4, subject: 'French Classes', location: 'Port Louis', teacher: 'Marie-Claire Lagesse', price: 700, spaces: 5, icon: 'fa-solid fa-language' },
-        { id: 5, subject: 'Football', location: 'Vacoas', teacher: 'Rajesh Beeharry', price: 500, spaces: 5, icon: 'fa-solid fa-futbol' },
-        { id: 6, subject: 'Art Club', location: 'Moka', teacher: 'Marie-Claire Lagesse', price: 650, spaces: 5, icon: 'fa-solid fa-palette' },
-        { id: 7, subject: 'Chess', location: 'Rose Hill', teacher: 'Priya Ramgoolam', price: 450, spaces: 5, icon: 'fa-solid fa-chess' },
-        { id: 8, subject: 'Robotics', location: 'Ebene', teacher: 'Anushka Doorgakant', price: 1200, spaces: 5, icon: 'fa-solid fa-robot' },
-        { id: 9, subject: 'Creole Heritage', location: 'Grand Baie', teacher: 'Kevin Baptiste', price: 550, spaces: 5, icon: 'fa-solid fa-book-open' },
-        { id: 10, subject: 'Piano', location: 'Flic en Flac', teacher: 'Anushka Doorgakant', price: 1000, spaces: 5, icon: 'fa-solid fa-music' }
-      ]
+      toastIsError: false,      // red warning style instead of the green tick
+      toastTimer: null          // remembers the timer so we can reset it
     };
+  },
+
+  // Runs once, as soon as the app is ready on the page
+  created() {
+    this.fetchLessons();
   },
 
   computed: {
@@ -49,9 +51,9 @@ createApp({
     phoneValid() {
       return /^[0-9]{7,15}$/.test(this.customerPhone.trim());             // digits only, 7 to 15 long
     },
-    // Checkout button is enabled only when both are valid
+    // Checkout button is enabled only when both are valid (and we are not already sending)
     canCheckout() {
-      return this.nameValid && this.phoneValid && this.cart.length > 0;
+      return this.nameValid && this.phoneValid && this.cart.length > 0 && !this.submitting;
     },
 
     // List of teacher names for the dropdown, built from the lessons.
@@ -74,11 +76,11 @@ createApp({
       const filtered = byTeacher.filter(lesson => {
         if (text === '') return true;
         return (
-          lesson.subject.toLowerCase().includes(text) ||
+          lesson.topic.toLowerCase().includes(text) ||
           lesson.location.toLowerCase().includes(text) ||
           lesson.teacher.toLowerCase().includes(text) ||
           String(lesson.price).includes(text) ||
-          String(lesson.spaces).includes(text)
+          String(lesson.space).includes(text)
         );
       });
 
@@ -87,7 +89,7 @@ createApp({
       const direction = this.sortOrder === 'asc' ? 1 : -1;
 
       return [...filtered].sort((a, b) => {
-        // numbers (price, spaces) compare with subtraction, words compare alphabetically
+        // numbers (price, space) compare with subtraction, words compare alphabetically
         if (typeof a[key] === 'number') return (a[key] - b[key]) * direction;
         return a[key].localeCompare(b[key]) * direction;
       });
@@ -95,26 +97,72 @@ createApp({
   },
 
   methods: {
+    // ---------- FETCH 1: GET all lessons ----------
+    fetchLessons() {
+      this.loading = true;
+      this.loadError = '';
+      fetch(API_URL + '/lessons')
+        .then(response => {
+          if (!response.ok) throw new Error('Server answered with status ' + response.status);
+          return response.json();                 // turn the JSON text into a JavaScript array
+        })
+        .then(data => {
+          this.lessons = data;                    // the page updates by itself
+        })
+        .catch(error => {
+          console.error(error);
+          this.loadError = 'Could not load lessons. Is the server running?';
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+
+    // ---------- FETCH 2: POST a new order ----------
+    saveOrder(order) {
+      return fetch(API_URL + '/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order)               // turn the JavaScript object into JSON text
+      }).then(response => {
+        if (!response.ok) throw new Error('Could not save order, status ' + response.status);
+        return response.json();
+      });
+    },
+
+    // ---------- FETCH 3: PUT the new number of spaces for one lesson ----------
+    updateLessonSpace(lessonId, newSpace) {
+      return fetch(API_URL + '/lessons/' + lessonId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ space: newSpace })
+      }).then(response => {
+        if (!response.ok) throw new Error('Could not update lesson, status ' + response.status);
+        return response.json();
+      });
+    },
+
     // Runs when "Add to cart" is clicked
     addToCart(lesson) {
-      if (lesson.spaces === 0) return;     // safety check: never go below 0
-      lesson.spaces--;                     // one fewer space left
+      if (lesson.space === 0) return;      // safety check: never go below 0
+      lesson.space--;                      // one fewer space left
 
-      const existing = this.cart.find(item => item.id === lesson.id);
+      const existing = this.cart.find(item => item.id === lesson._id);
       if (existing) {
         existing.quantity++;               // already in cart: add one more
       } else {
         this.cart.push({
-          id: lesson.id, subject: lesson.subject, location: lesson.location,
+          id: lesson._id, topic: lesson.topic, location: lesson.location,
           price: lesson.price, icon: lesson.icon, quantity: 1
         });
       }
-      this.showToast(lesson.subject + ' added to cart');
+      this.showToast(lesson.topic + ' added to cart');
     },
 
-    // Shows the popup message for 2 seconds
-    showToast(message) {
+    // Shows the popup message for 2 seconds (red style if isError is true)
+    showToast(message, isError = false) {
       this.toastMessage = message;
+      this.toastIsError = isError;
       clearTimeout(this.toastTimer);                 // cancel the old timer if still running
       this.toastTimer = setTimeout(() => {
         this.toastMessage = '';                      // hide it after 2 seconds
@@ -133,27 +181,53 @@ createApp({
 
     // Remove a lesson from the cart and give its spaces back to the lesson list
     removeFromCart(item) {
-      const lesson = this.lessons.find(l => l.id === item.id);
-      lesson.spaces += item.quantity;                       // spaces go back on the lesson card
+      const lesson = this.lessons.find(l => l._id === item.id);
+      lesson.space += item.quantity;                        // spaces go back on the lesson card
       this.cart = this.cart.filter(c => c.id !== item.id);  // drop the row from the cart
       if (this.cart.length === 0) this.currentPage = 'lessons';  // nothing left, go back
     },
 
-    // Runs when Checkout is clicked
-    // (later we will add the fetch calls here: POST the order, PUT the new spaces)
+    // Runs when Checkout is clicked:
+    // 1) POST the order, 2) PUT the new spaces for each lesson, 3) show the confirmation
     checkout() {
       if (!this.canCheckout) return;
-      this.lastOrder = {
+      this.submitting = true;
+
+      const order = {
         name: this.customerName.trim(),
         phone: this.customerPhone.trim(),
+        items: this.cart.map(item => ({ lessonID: item.id, spaces: item.quantity }))
+      };
+      const summary = {
+        name: order.name,
+        phone: order.phone,
         items: [...this.cart],
         spaces: this.cartCount,
         total: this.cartTotal
       };
-      this.cart = [];
-      this.customerName = '';
-      this.customerPhone = '';
-      this.orderPlaced = true;
+
+      this.saveOrder(order)
+        .then(() => {
+          // one PUT per lesson in the cart, all sent together
+          return Promise.all(this.cart.map(item => {
+            const lesson = this.lessons.find(l => l._id === item.id);
+            return this.updateLessonSpace(item.id, lesson.space);
+          }));
+        })
+        .then(() => {
+          this.lastOrder = summary;
+          this.cart = [];
+          this.customerName = '';
+          this.customerPhone = '';
+          this.orderPlaced = true;
+        })
+        .catch(error => {
+          console.error(error);
+          this.showToast('Could not place the order. Please try again.', true);
+        })
+        .finally(() => {
+          this.submitting = false;
+        });
     },
 
     // "Back to lessons" on the confirmation message
@@ -163,13 +237,13 @@ createApp({
     },
 
     // Text and colour for the spaces badge
-    spacesLabel(spaces) {
-      if (spaces === 0) return 'Fully booked';
-      return spaces === 1 ? '1 space left' : spaces + ' spaces left';
+    spacesLabel(space) {
+      if (space === 0) return 'Fully booked';
+      return space === 1 ? '1 space left' : space + ' spaces left';
     },
-    spacesClass(spaces) {
-      if (spaces === 0) return 'badge-out';
-      if (spaces <= 2) return 'badge-low';
+    spacesClass(space) {
+      if (space === 0) return 'badge-out';
+      if (space <= 2) return 'badge-low';
       return 'badge-ok';
     }
   }
