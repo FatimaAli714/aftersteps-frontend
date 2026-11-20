@@ -137,6 +137,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .lesson-top h3 { margin: 0; font-size: 1.25rem; line-height: 1.2; }
 .lesson-location { margin: 0; color: var(--muted); }
 .lesson-location i { color: var(--primary); margin-right: 0.3rem; }
+.lesson-teacher { margin: 0; color: var(--muted); }
+.lesson-teacher i { color: var(--accent); margin-right: 0.3rem; }
 .lesson-price { margin: 0.2rem 0 0.6rem; }
 .lesson-price strong { font-size: 1.3rem; }
 .lesson-price span { color: var(--muted); font-size: 0.85rem; }
@@ -155,20 +157,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .add-btn:hover:not(:disabled) { background: var(--primary-dark); }
 .add-btn:disabled { background: #e6dfee; color: #7d7490; cursor: not-allowed; }
 .back-btn { margin-top: 1rem; }
-
-/* ---------- Toast popup ---------- */
-.toast {
-  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-  background: var(--ink); color: #fff;
-  padding: 0.8rem 1.4rem; border-radius: 999px;
-  box-shadow: 0 6px 20px rgba(45, 34, 64, 0.25);
-  z-index: 20; font-weight: 500;
-}
-.toast i { color: #7be0a4; margin-right: 0.4rem; }
-.toast-enter-active, .toast-leave-active { transition: opacity 0.25s, transform 0.25s; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 12px); }
-
-
 
 /* ---------- Cart and checkout ---------- */
 .cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
@@ -231,3 +219,14 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
   .hero h2 { font-size: 1.7rem; }
 }
 
+/* ---------- Toast popup ---------- */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: #fff;
+  padding: 0.8rem 1.4rem; border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(45, 34, 64, 0.25);
+  z-index: 20; font-weight: 500;
+}
+.toast i { color: #7be0a4; margin-right: 0.4rem; }
+.toast-enter-active, .toast-leave-active { transition: opacity 0.25s, transform 0.25s; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 12px); }
