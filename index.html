@@ -86,3 +86,63 @@
         </article>
       </div>
     </main>
+      
+
+    <!-- TEACHERS PAGE (placeholder for later) -->
+    <main v-else-if="currentPage === 'teachers'">
+      <section class="hero"><h2>Our teachers</h2><p>Coming soon.</p></section>
+    </main>
+
+    <!-- CART PAGE: items, checkout form, and confirmation message -->
+    <main v-else-if="currentPage === 'cart'">
+      <section class="hero"><h2>Your cart</h2></section>
+
+      <!-- Shown after a successful checkout -->
+      <section class="confirm" v-if="orderPlaced">
+        <div class="confirm-icon"><i class="fa-solid fa-check"></i></div>
+        <h3>Your order is confirmed</h3>
+        <p>Thank you, {{ lastOrder.name }}. You booked {{ lastOrder.spaces }} space(s) for a total of Rs {{ lastOrder.total }}.</p>
+        <button class="add-btn" @click="finishOrder">Back to lessons</button>
+      </section>
+
+      <!-- Normal cart: list on the left, checkout on the right -->
+      <div class="cart-layout" v-else>
+        <section class="cart-items">
+          <article class="cart-row" v-for="item in cart" :key="item.id">
+            <div class="cart-icon"><i :class="item.icon"></i></div>
+            <div class="cart-info">
+              <h3>{{ item.subject }}</h3>
+              <p>{{ item.location }}</p>
+              <p>Rs {{ item.price }} x {{ item.quantity }} = <strong>Rs {{ item.price * item.quantity }}</strong></p>
+            </div>
+            <button class="remove-btn" @click="removeFromCart(item)">
+              <i class="fa-solid fa-trash"></i> Remove
+            </button>
+          </article>
+        </section>
+
+        <aside class="checkout">
+          <h3>Checkout</h3>
+          <p class="total">Total <strong>Rs {{ cartTotal }}</strong></p>
+
+          <label>Name
+            <input type="text" v-model="customerName" placeholder="e.g. Anita Ramgoolam">
+          </label>
+          <p class="field-error" v-if="customerName !== '' && !nameValid">Name can only contain letters and spaces.</p>
+
+          <label>Phone
+            <input type="text" inputmode="numeric" v-model="customerPhone" placeholder="e.g. 57123456">
+          </label>
+          <p class="field-error" v-if="customerPhone !== '' && !phoneValid">Phone must be 7 to 15 digits, numbers only.</p>
+
+          <button class="add-btn" :disabled="!canCheckout" @click="checkout">Checkout</button>
+        </aside>
+      </div>
+    </main>
+
+  </div>
+
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
