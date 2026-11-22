@@ -236,3 +236,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 3rem; }
 .empty .remove-btn { margin-left: 0.8rem; }
 .toast.toast-error { background: var(--danger); }
 .toast.toast-error i { color: #fff; }
+
+/* ---------- Lesson pictures ---------- */
+.lesson-img {
+  width: 100%; height: 160px; object-fit: cover;
+  border-radius: 0.9rem; margin-bottom: 0.5rem; background: var(--primary-soft);
+}
+.cart-img {
+  flex: none; width: 64px; height: 64px; object-fit: cover; border-radius: 0.9rem;
+}

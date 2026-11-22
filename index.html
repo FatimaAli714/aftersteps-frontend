@@ -59,6 +59,7 @@
           <select v-model="sortBy">
             <option value="topic">Subject</option>
             <option value="location">Location</option>
+            <option value="teacher">Teacher</option>
             <option value="price">Price</option>
             <option value="space">Spaces</option>
           </select>
@@ -88,7 +89,10 @@
       <!-- The lesson list: v-for makes one card per lesson -->
       <div class="lesson-grid">
         <article class="lesson-card" v-for="lesson in visibleLessons" :key="lesson._id">
-          <div class="lesson-icon"><i :class="lesson.icon"></i></div>
+          <!-- Picture if the lesson has one and it loads; otherwise the icon -->
+          <img class="lesson-img" v-if="lesson.image && !lesson.imageFailed"
+               :src="imageUrl(lesson)" :alt="lesson.topic" @error="lesson.imageFailed = true">
+          <div class="lesson-icon" v-else><i :class="lesson.icon"></i></div>
           <div class="lesson-top">
             <h3>{{ lesson.topic }}</h3>
             <span class="badge" :class="spacesClass(lesson.space)">{{ spacesLabel(lesson.space) }}</span>
@@ -124,7 +128,9 @@
       <div class="cart-layout" v-else>
         <section class="cart-items">
           <article class="cart-row" v-for="item in cart" :key="item.id">
-            <div class="cart-icon"><i :class="item.icon"></i></div>
+            <img class="cart-img" v-if="item.image && !item.imageFailed"
+                 :src="imageUrl(item)" :alt="item.topic" @error="item.imageFailed = true">
+            <div class="cart-icon" v-else><i :class="item.icon"></i></div>
             <div class="cart-info">
               <h3>{{ item.topic }}</h3>
               <p>{{ item.location }}</p>

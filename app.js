@@ -142,6 +142,11 @@ createApp({
       });
     },
 
+    // Full web address of a lesson's picture, served by the back-end's static file middleware
+    imageUrl(item) {
+      return API_URL + '/images/' + item.image;
+    },
+
     // Runs when "Add to cart" is clicked
     addToCart(lesson) {
       if (lesson.space === 0) return;      // safety check: never go below 0
@@ -153,7 +158,7 @@ createApp({
       } else {
         this.cart.push({
           id: lesson._id, topic: lesson.topic, location: lesson.location,
-          price: lesson.price, icon: lesson.icon, quantity: 1
+          price: lesson.price, icon: lesson.icon, image: lesson.image, quantity: 1
         });
       }
       this.showToast(lesson.topic + ' added to cart');
