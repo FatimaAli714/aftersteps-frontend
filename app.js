@@ -142,6 +142,11 @@ createApp({
       });
     },
 
+    // "Browse lessons" button in the hero: scroll smoothly down to the search and sort controls
+    scrollToLessons() {
+      document.getElementById('lessons-start').scrollIntoView({ behavior: 'smooth' });
+    },
+
     // Full web address of a lesson's picture, served by the back-end's static file middleware
     imageUrl(item) {
       return API_URL + '/images/' + item.image;

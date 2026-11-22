@@ -38,13 +38,17 @@
 
     <!-- LESSONS PAGE -->
     <main v-if="currentPage === 'lessons'">
-      <section class="hero">
-        <h2>Find your child's next step</h2>
-        <p>After-school classes and activities across Mauritius. Pick a lesson, add it to your cart, done.</p>
+      <section class="hero hero-lessons">
+        <div class="hero-content">
+          <span class="hero-kicker">After-school classes in Mauritius</span>
+          <h2>Find your child's next step</h2>
+          <p>Art, music, sport and school subjects, taught by friendly local teachers. Pick a lesson, add it to your cart, done.</p>
+          <button class="hero-btn" @click="scrollToLessons">Browse lessons <i class="fa-solid fa-arrow-down"></i></button>
+        </div>
       </section>
 
       <!-- Search + sort controls -->
-      <section class="controls">
+      <section class="controls" id="lessons-start">
         <label class="search">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="search" v-model="searchText" placeholder="Search by subject, location, teacher, price or spaces">
