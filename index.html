@@ -111,9 +111,32 @@
       </div>
     </main>
 
-    <!-- TEACHERS PAGE (placeholder for later) -->
+    <!-- TEACHERS PAGE: one card per teacher from the database -->
     <main v-else-if="currentPage === 'teachers'">
-      <section class="hero"><h2>Our teachers</h2><p>Coming soon.</p></section>
+      <section class="hero">
+        <h2>Meet our teachers</h2>
+        <p>Choose a teacher to see everything they teach.</p>
+      </section>
+
+      <p class="empty" v-if="teachersLoading">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading teachers...
+      </p>
+      <p class="empty error" v-if="teachersError">
+        {{ teachersError }}
+        <button class="remove-btn" @click="fetchTeachers">Try again</button>
+      </p>
+
+      <div class="teacher-grid">
+        <article class="teacher-card" v-for="teacher in teachers" :key="teacher._id">
+          <div class="avatar">{{ teacher.firstName[0] }}{{ teacher.lastName[0] }}</div>
+          <h3>{{ teacher.firstName }} {{ teacher.lastName }}</h3>
+          <p class="teacher-bio">{{ teacher.bio }}</p>
+          <ul class="teacher-lessons">
+            <li v-for="topic in teacher.lessons" :key="topic"><i class="fa-solid fa-circle-check"></i> {{ topic }}</li>
+          </ul>
+          <button class="add-btn" @click="viewTeacherLessons(teacher)">View lessons</button>
+        </article>
+      </div>
     </main>
 
     <!-- CART PAGE: items, checkout form, and confirmation message -->

@@ -15,6 +15,9 @@ createApp({
       loadError: '',            // message shown if the lessons could not be loaded
       searchMatchIds: null,     // ids of the lessons the SERVER says match the search (null = no search)
       searchTimer: null,        // waits a moment after typing before asking the server
+      teachers: [],             // filled from the database by fetchTeachers()
+      teachersLoading: true,
+      teachersError: '',
       cart: [],                 // items added: { id, topic, location, price, icon, quantity }
       customerName: '',         // checkout form
       customerPhone: '',
@@ -30,6 +33,7 @@ createApp({
   // Runs once, as soon as the app is ready on the page
   created() {
     this.fetchLessons();
+    this.fetchTeachers();
   },
 
   // watch runs a function whenever a value changes
@@ -121,6 +125,36 @@ createApp({
         .finally(() => {
           this.loading = false;
         });
+    },
+
+    // ---------- FETCH 5: GET all teachers ----------
+    fetchTeachers() {
+      this.teachersLoading = true;
+      this.teachersError = '';
+      fetch(API_URL + '/teachers')
+        .then(response => {
+          if (!response.ok) throw new Error('Server answered with status ' + response.status);
+          return response.json();
+        })
+        .then(data => {
+          this.teachers = data;
+        })
+        .catch(error => {
+          console.error(error);
+          this.teachersError = 'Could not load teachers. Is the server running?';
+        })
+        .finally(() => {
+          this.teachersLoading = false;
+        });
+    },
+
+    // "View lessons" button on a teacher card:
+    // use the teacher filter on the lessons page, then go there
+    viewTeacherLessons(teacher) {
+      this.selectedTeacher = teacher.firstName + ' ' + teacher.lastName;   // must match the lessons' teacher text
+      this.searchText = '';                                                // clear any old search
+      this.currentPage = 'lessons';
+      this.$nextTick(() => this.scrollToLessons());                        // wait for the page to switch, then scroll
     },
 
     // ---------- FETCH 4: GET search results from the back-end ----------
