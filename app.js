@@ -13,6 +13,8 @@ createApp({
       lessons: [],              // filled from the database by fetchLessons()
       loading: true,            // true while waiting for the server
       loadError: '',            // message shown if the lessons could not be loaded
+      searchMatchIds: null,     // ids of the lessons the SERVER says match the search (null = no search)
+      searchTimer: null,        // waits a moment after typing before asking the server
       cart: [],                 // items added: { id, topic, location, price, icon, quantity }
       customerName: '',         // checkout form
       customerPhone: '',
@@ -28,6 +30,19 @@ createApp({
   // Runs once, as soon as the app is ready on the page
   created() {
     this.fetchLessons();
+  },
+
+  // watch runs a function whenever a value changes
+  watch: {
+    searchText() {
+      clearTimeout(this.searchTimer);
+      if (this.searchText.trim() === '') {
+        this.searchMatchIds = null;                    // empty box: show everything again straight away
+        return;
+      }
+      // wait 300 ms after the last key press, so we do not call the server on every single letter
+      this.searchTimer = setTimeout(() => this.searchLessons(), 300);
+    }
   },
 
   computed: {
@@ -63,23 +78,15 @@ createApp({
     // The lessons actually shown: filtered by teacher, then by search, then sorted.
     // Vue re-runs this automatically whenever searchText, sortBy, sortOrder or lessons change.
     visibleLessons() {
-      const text = this.searchText.trim().toLowerCase();
-
       // Step 1: teacher filter. 'all' keeps every lesson.
       const byTeacher = this.lessons.filter(lesson => {
         return this.selectedTeacher === 'all' || lesson.teacher === this.selectedTeacher;
       });
 
-      // Step 2: search filter, applied to what is left after step 1
+      // Step 2: search filter. The server decided which lessons match (searchMatchIds);
+      // we keep our own copy of each lesson so the live spaces from the cart stay correct.
       const filtered = byTeacher.filter(lesson => {
-        if (text === '') return true;
-        return (
-          lesson.topic.toLowerCase().includes(text) ||
-          lesson.location.toLowerCase().includes(text) ||
-          lesson.teacher.toLowerCase().includes(text) ||
-          String(lesson.price).includes(text) ||
-          String(lesson.space).includes(text)
-        );
+        return this.searchMatchIds === null || this.searchMatchIds.includes(lesson._id);
       });
 
       // Step 3: sort
@@ -113,6 +120,24 @@ createApp({
         })
         .finally(() => {
           this.loading = false;
+        });
+    },
+
+    // ---------- FETCH 4: GET search results from the back-end ----------
+    searchLessons() {
+      const text = this.searchText.trim();
+      fetch(API_URL + '/search?q=' + encodeURIComponent(text))   // encodeURIComponent makes the text safe for a web address
+        .then(response => {
+          if (!response.ok) throw new Error('Server answered with status ' + response.status);
+          return response.json();
+        })
+        .then(results => {
+          if (text !== this.searchText.trim()) return;           // the user kept typing, so ignore this old answer
+          this.searchMatchIds = results.map(lesson => lesson._id);
+        })
+        .catch(error => {
+          console.error(error);
+          this.showToast('Search failed. Please try again.', true);
         });
     },
 
