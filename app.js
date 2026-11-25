@@ -1,8 +1,6 @@
 const { createApp } = Vue;
 
-// Address of the back-end server. Locally it is your own computer.
-// When the server is on Render, change this one line to your Render address.
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://m01137063-aftersteps.onrender.com';
 
 createApp({
   data() {
