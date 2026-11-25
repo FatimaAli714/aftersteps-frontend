@@ -66,7 +66,7 @@ createApp({
       return /^[A-Za-z]+( [A-Za-z]+)*$/.test(this.customerName.trim());   // letters and single spaces only
     },
     phoneValid() {
-      return /^[0-9]{7,15}$/.test(this.customerPhone.trim());             // digits only, 7 to 15 long
+      return /^[0-9]{8}$/.test(this.customerPhone.trim());                // digits only, exactly 8 (Mauritian mobile number)
     },
     // Checkout button is enabled only when both are valid (and we are not already sending)
     canCheckout() {
@@ -252,6 +252,7 @@ createApp({
       lesson.space += item.quantity;                        // spaces go back on the lesson card
       this.cart = this.cart.filter(c => c.id !== item.id);  // drop the row from the cart
       if (this.cart.length === 0) this.currentPage = 'lessons';  // nothing left, go back
+      this.showToast(item.topic + ' removed from cart');
     },
 
     // Runs when Checkout is clicked:

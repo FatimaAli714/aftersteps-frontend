@@ -172,6 +172,7 @@
         <aside class="checkout">
           <h3>Checkout</h3>
           <p class="total">Total <strong>Rs {{ cartTotal }}</strong></p>
+          <p class="pay-note"><i class="fa-solid fa-circle-info"></i> No online payment needed. You pay at the centre on your first lesson.</p>
 
           <label>Name
             <input type="text" v-model="customerName" placeholder="e.g. Anita Ramgoolam">
@@ -181,7 +182,7 @@
           <label>Phone
             <input type="text" inputmode="numeric" v-model="customerPhone" placeholder="e.g. 57123456">
           </label>
-          <p class="field-error" v-if="customerPhone !== '' && !phoneValid">Phone must be 7 to 15 digits, numbers only.</p>
+          <p class="field-error" v-if="customerPhone !== '' && !phoneValid">Phone must be 8 digits, numbers only (e.g. 57123456).</p>
 
           <button class="add-btn" :disabled="!canCheckout" @click="checkout">{{ submitting ? 'Placing order...' : 'Checkout' }}</button>
         </aside>
