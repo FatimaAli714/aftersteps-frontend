@@ -73,6 +73,11 @@ createApp({
       return this.nameValid && this.phoneValid && this.cart.length > 0 && !this.submitting;
     },
 
+    // Short order reference for the confirmation screen: the last 6 characters of the order id MongoDB created
+    orderReference() {
+      return this.lastOrder ? String(this.lastOrder.orderId).slice(-6).toUpperCase() : '';
+    },
+
     // List of teacher names for the dropdown, built from the lessons.
     // Set removes duplicates (each teacher has 2 lessons), sort puts them A to Z.
     teacherNames() {
@@ -271,11 +276,13 @@ createApp({
         phone: order.phone,
         items: [...this.cart],
         spaces: this.cartCount,
-        total: this.cartTotal
+        total: this.cartTotal,
+        date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
       };
 
       this.saveOrder(order)
-        .then(() => {
+        .then(result => {
+          summary.orderId = result.orderId;       // the id MongoDB gave to the saved order
           // one PUT per lesson in the cart, all sent together
           return Promise.all(this.cart.map(item => {
             const lesson = this.lessons.find(l => l._id === item.id);
